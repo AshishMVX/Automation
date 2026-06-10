@@ -26,7 +26,7 @@ export function getSettings() {
   const defaults = {
     webhookUrl: typeof import.meta !== 'undefined' ? (import.meta.env?.VITE_WEBHOOK_URL || '') : '',
     authToken: '',
-    googleClientId: '',
+    calendarWebhookUrl: '',
   }
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')

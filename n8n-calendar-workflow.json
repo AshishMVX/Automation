@@ -1,0 +1,112 @@
+{
+  "name": "HR Calendar – Create Google Meet Event",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hr-calendar",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "b1c2d3e4-f5a6-7890-bcde-fa1234567801",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "b1c2d3e4-f5a6-7890-bcde-fa1234567802"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\n\nfunction durationMins(dur) {\n  if (!dur) return 60;\n  if (dur.includes('30')) return 30;\n  if (dur.includes('45')) return 45;\n  return 60;\n}\n\nconst [h, m] = (d.interviewTime || '09:00').split(':').map(Number);\nconst endTotal = h * 60 + m + durationMins(d.duration);\nconst endH = String(Math.floor(endTotal / 60) % 24).padStart(2, '0');\nconst endM = String(endTotal % 60).padStart(2, '0');\n\nconst attendees = [];\nif (d.candidateEmail) attendees.push({ email: d.candidateEmail });\nif (d.ccEmails) {\n  d.ccEmails.split(',').map(e => e.trim()).filter(Boolean).forEach(e => attendees.push({ email: e }));\n}\n\nreturn [{\n  json: {\n    summary: `Interview \\u2013 ${d.candidateName || 'Candidate'} | ${d.role || 'Position'} @ Mervix Technology`,\n    description: [\n      d.role          ? `Position: ${d.role}` : '',\n      d.interviewRound   ? `Round: ${d.interviewRound}` : '',\n      d.interviewType    ? `Type: ${d.interviewType}` : '',\n      d.interviewerName  ? `Interviewer: ${d.interviewerName}` : '',\n      d.duration         ? `Duration: ${d.duration}` : '',\n    ].filter(Boolean).join('\\n'),\n    startDateTime: `${d.interviewDate}T${d.interviewTime}:00`,\n    endDateTime: `${d.interviewDate}T${endH}:${endM}:00`,\n    timeZone: 'Asia/Kolkata',\n    attendees,\n  }\n}];"
+      },
+      "id": "b1c2d3e4-f5a6-7890-bcde-fa1234567803",
+      "name": "Prepare Event Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "resource": "event",
+        "operation": "create",
+        "calendarId": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "id"
+        },
+        "start": "={{ $json.startDateTime }}",
+        "end": "={{ $json.endDateTime }}",
+        "useDefaultReminders": false,
+        "additionalFields": {
+          "summary": "={{ $json.summary }}",
+          "description": "={{ $json.description }}",
+          "attendeesUi": {
+            "attendeeValues": "={{ $json.attendees }}"
+          },
+          "conferenceDataUi": {
+            "conferenceDataValues": {
+              "solutionKey": "hangoutsMeet"
+            }
+          },
+          "remindersUi": {
+            "remindersValues": [
+              { "method": "email", "minutes": 1440 },
+              { "method": "popup", "minutes": 30 }
+            ]
+          }
+        }
+      },
+      "id": "b1c2d3e4-f5a6-7890-bcde-fa1234567804",
+      "name": "Create Calendar Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "",
+          "name": "Google Calendar – ashish@mervixtechnology.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ meetLink: $json.conferenceData?.entryPoints?.find(ep => ep.entryPointType === 'video')?.uri ?? '', eventLink: $json.htmlLink ?? '' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "b1c2d3e4-f5a6-7890-bcde-fa1234567805",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{ "node": "Prepare Event Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Event Data": {
+      "main": [
+        [{ "node": "Create Calendar Event", "type": "main", "index": 0 }]
+      ]
+    },
+    "Create Calendar Event": {
+      "main": [
+        [{ "node": "Respond to Webhook", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": ""
+  }
+}

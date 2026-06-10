@@ -148,8 +148,8 @@ export default function SendInviteForm({ showToast }) {
 
   const handleCreateCalendarEvent = async () => {
     const settings = getSettings()
-    if (!settings.googleClientId) {
-      showToast('Add your Google Client ID in the Settings tab first.', 'error')
+    if (!settings.calendarWebhookUrl) {
+      showToast('Add your Calendar Webhook URL in the Settings tab first.', 'error')
       return
     }
     if (!form.interviewDate || !form.interviewTime) {
@@ -159,7 +159,7 @@ export default function SendInviteForm({ showToast }) {
     setCalendarCreating(true)
     try {
       const result = await createCalendarEventWithMeet({
-        clientId: settings.googleClientId,
+        calendarWebhookUrl: settings.calendarWebhookUrl,
         candidateName: form.candidateName || 'Candidate',
         candidateEmail: form.candidateEmail,
         role: form.role || 'Position',

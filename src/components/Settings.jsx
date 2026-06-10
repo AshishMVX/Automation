@@ -104,28 +104,26 @@ export default function Settings({ showToast }) {
           </h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Google OAuth Client ID{' '}
-              <span className="text-gray-400 text-xs font-normal">(optional)</span>
+              Calendar Webhook URL{' '}
+              <span className="text-gray-400 text-xs font-normal">(from n8n calendar workflow)</span>
             </label>
             <input
-              type="text"
-              value={form.googleClientId || ''}
-              onChange={e => set('googleClientId', e.target.value)}
-              placeholder="xxxxxxxx.apps.googleusercontent.com"
+              type="url"
+              value={form.calendarWebhookUrl || ''}
+              onChange={e => set('calendarWebhookUrl', e.target.value)}
+              placeholder="https://your-n8n.com/webhook/hr-calendar"
               className={inputCls}
             />
             <p className="text-xs text-gray-400 mt-1">
-              Enables the "Create Google Meet" button on the Send Invite form.
+              Events are always created in the connected Google account — no sign-in needed for HR.
             </p>
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-            <p className="font-semibold mb-1">📋 One-time Setup</p>
+            <p className="font-semibold mb-1">📋 n8n Calendar Setup</p>
             <ol className="list-decimal list-inside space-y-1 text-xs text-blue-700">
-              <li>Open <strong>Google Cloud Console</strong> → create or select a project</li>
-              <li>Enable the <strong>Google Calendar API</strong></li>
-              <li>Go to <strong>Credentials → Create OAuth 2.0 Client ID</strong> (Web application)</li>
-              <li>Add your app URL to <strong>Authorized JavaScript Origins</strong></li>
-              <li>Copy the Client ID, paste above, and save settings</li>
+              <li>Import <strong>n8n-calendar-workflow.json</strong> into n8n</li>
+              <li>Connect <strong>ashish@mervixtechnology.com</strong> Google account in the Google Calendar node</li>
+              <li>Activate the workflow and copy the webhook URL here</li>
             </ol>
           </div>
         </div>
