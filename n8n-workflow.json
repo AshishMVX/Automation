@@ -27,6 +27,9 @@
         "message": "={{ $json.emailBody }}",
         "options": {
           "senderName": "={{ $json.senderName }}"
+        },
+        "additionalFields": {
+          "cc": "={{ $json.ccEmails }}"
         }
       },
       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567803",

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { getSettings, saveSettings } from '../utils/storage'
+import { getSettings, saveSettings, SENDER_NAME, SENDER_EMAIL } from '../utils/storage'
 import { sendWebhook } from '../utils/webhook'
 
 export default function Settings({ showToast }) {
@@ -77,25 +77,13 @@ export default function Settings({ showToast }) {
           />
         </div>
 
-        {/* Sender info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Sender info – locked */}
+        <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-start gap-3">
+          <span className="text-lg mt-0.5">🔒</span>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
-            <input
-              type="text"
-              value={form.senderName}
-              onChange={e => set('senderName', e.target.value)}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sender Email</label>
-            <input
-              type="email"
-              value={form.senderEmail}
-              onChange={e => set('senderEmail', e.target.value)}
-              className={inputCls}
-            />
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Emails sent from (fixed)</p>
+            <p className="text-sm font-medium text-gray-800">{SENDER_NAME}</p>
+            <p className="text-sm text-gray-500">{SENDER_EMAIL}</p>
           </div>
         </div>
 

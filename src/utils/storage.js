@@ -1,6 +1,9 @@
 const HISTORY_KEY = 'hr_email_history'
 const SETTINGS_KEY = 'hr_settings'
 
+export const SENDER_NAME  = 'HR Team – Mervix Technology'
+export const SENDER_EMAIL = 'hr@mervixtechnology.com'
+
 export function getHistory() {
   try {
     return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
@@ -23,15 +26,18 @@ export function getSettings() {
   const defaults = {
     webhookUrl: typeof import.meta !== 'undefined' ? (import.meta.env?.VITE_WEBHOOK_URL || '') : '',
     authToken: '',
-    senderName: 'HR Team – Mervix Technology',
-    senderEmail: 'hr@mervixtechnology.com',
     googleClientId: '',
   }
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
-    return { ...defaults, ...saved }
+    return {
+      ...defaults,
+      ...saved,
+      senderName: SENDER_NAME,
+      senderEmail: SENDER_EMAIL,
+    }
   } catch {
-    return defaults
+    return { ...defaults, senderName: SENDER_NAME, senderEmail: SENDER_EMAIL }
   }
 }
 
