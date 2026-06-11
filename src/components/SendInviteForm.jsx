@@ -48,6 +48,8 @@ export default function SendInviteForm({ showToast }) {
   const [manualEdit, setManualEdit] = useState(false)
   const [calendarCreating, setCalendarCreating] = useState(false)
   const [calendarEvent, setCalendarEvent] = useState(null)
+  const [guests, setGuests]       = useState([])
+  const [guestInput, setGuestInput] = useState('')
 
   // Auto-populate subject & body whenever template / form data changes
   // (unless the user has manually edited the body)
@@ -81,6 +83,21 @@ export default function SendInviteForm({ showToast }) {
   const resetManualEdit = (template) => {
     setManualEdit(false)
     set('emailTemplate', template)
+  }
+
+  const addGuest = () => {
+    const email = guestInput.trim()
+    if (!email) return
+    if (!/\S+@\S+\.\S+/.test(email)) { showToast('Enter a valid email address.', 'error'); return }
+    if (guests.includes(email)) { showToast('This guest is already added.', 'error'); return }
+    setGuests(prev => [...prev, email])
+    setGuestInput('')
+  }
+
+  const removeGuest = (email) => setGuests(prev => prev.filter(g => g !== email))
+
+  const handleGuestKeyDown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addGuest() }
   }
 
   const validate = () => {
@@ -123,7 +140,7 @@ export default function SendInviteForm({ showToast }) {
       emailSubject:   form.emailSubject,
       emailBody:      finalBody,
       notes:          form.notes,
-      ccEmails:       form.ccEmails,
+      ccEmails:       guests.join(', '),
       senderName:     settings.senderName,
       senderEmail:    settings.senderEmail,
       timestamp:      new Date().toISOString(),
@@ -138,6 +155,8 @@ export default function SendInviteForm({ showToast }) {
       setFiles([])
       setManualEdit(false)
       setCalendarEvent(null)
+      setGuests([])
+      setGuestInput('')
     } catch (err) {
       addToHistory({ ...payload, status: 'failed' })
       showToast(`Send failed: ${err.message}`, 'error')
@@ -169,7 +188,7 @@ export default function SendInviteForm({ showToast }) {
         interviewRound: form.interviewRound,
         interviewerName: form.interviewerName,
         duration: form.duration,
-        ccEmails: form.ccEmails,
+        ccEmails: guests.join(', '),
       })
       if (result.meetLink) set('meetingLink', result.meetLink)
       setCalendarEvent(result)
@@ -310,7 +329,60 @@ export default function SendInviteForm({ showToast }) {
                 placeholder="https://meet.google.com/… or 5th Floor, Mervix HQ, Bengaluru"
                 className={ic('meetingLink')} />
             </Field>
+          </div>
 
+          <div className="sm:col-span-2 lg:col-span-3">
+            <Field label="Guests" hint="added to calendar event & email CC">
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={guestInput}
+                    onChange={e => setGuestInput(e.target.value)}
+                    onKeyDown={handleGuestKeyDown}
+                    placeholder="guest@example.com"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={addGuest}
+                    disabled={!guestInput.trim()}
+                    className="px-4 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 text-sm font-medium hover:bg-indigo-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add
+                  </button>
+                </div>
+                {guests.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {guests.map(email => (
+                      <span key={email} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium border border-indigo-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        {email}
+                        <button
+                          type="button"
+                          onClick={() => removeGuest(email)}
+                          className="ml-0.5 text-indigo-400 hover:text-red-500 w-4 h-4 rounded-full hover:bg-red-50 flex items-center justify-center transition-all"
+                          title="Remove guest"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {guests.length === 0 && (
+                  <p className="text-xs text-gray-400">Type an email and press Enter or click Add</p>
+                )}
+              </div>
+            </Field>
+          </div>
+
+          <div className="sm:col-span-2 lg:col-span-3">
             <button
               type="button"
               onClick={handleCreateCalendarEvent}
@@ -375,16 +447,6 @@ export default function SendInviteForm({ showToast }) {
           <Field label="Subject">
             <input type="text" value={form.emailSubject}
               onChange={e => set('emailSubject', e.target.value)} className={ic('emailSubject')} />
-          </Field>
-
-          <Field label="CC" hint="optional — comma-separated email addresses">
-            <input
-              type="text"
-              value={form.ccEmails}
-              onChange={e => set('ccEmails', e.target.value)}
-              placeholder="manager@company.com, team@company.com"
-              className={ic('ccEmails')}
-            />
           </Field>
 
           <Field label="Email Body">
